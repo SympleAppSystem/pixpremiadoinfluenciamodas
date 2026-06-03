@@ -9,7 +9,7 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; color: #333; }
         .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         
-        /* Menu de Controles (Select e Botão de Imprimir) */
+        /* Menu de Controles */
         .controls-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid #2a5298;}
         .select-group label { font-weight: bold; margin-right: 10px; color: #333; font-size: 16px;}
         .select-group select { padding: 10px 15px; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; outline: none; min-width: 250px; font-weight: bold; color: #2a5298; cursor: pointer; background-color: #f9f9f9;}
@@ -34,6 +34,10 @@
         
         .status-pago { color: #2E8B57; font-weight: bold; background-color: #e8f5e9; }
         .status-reservado { color: #f39c12; font-weight: bold; background-color: #fdf2e9; }
+
+        /* Botão do WhatsApp (Contato) */
+        .btn-whats-pequeno { background: #25D366; color: white; padding: 8px 12px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px; display: inline-block; transition: 0.2s; box-shadow: 0 2px 5px rgba(37, 211, 102, 0.3);}
+        .btn-whats-pequeno:hover { background: #1ebd57; transform: translateY(-2px); }
         
         /* Quadros de Resumo Financeiro */
         .summary-wrapper { display: flex; justify-content: flex-end; gap: 20px; margin-top: 30px; }
@@ -46,7 +50,8 @@
         @media print { 
             body { background: white; padding: 0; margin: 0; }
             .container { box-shadow: none; padding: 0; }
-            .controls-wrapper { display: none !important; } /* Esconde o menu e o botão ao imprimir */
+            .controls-wrapper { display: none !important; }
+            .col-acao { display: none !important; } /* Esconde a coluna de contato na impressão */
         }
     </style>
 </head>
@@ -79,15 +84,15 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 15%;">Nº dos Bilhetes</th>
-                    <th style="width: 30%;">Nome do Cliente</th>
+                    <th style="width: 12%;">Nº dos Bilhetes</th>
+                    <th style="width: 28%;">Nome do Cliente</th>
                     <th style="width: 15%;">WhatsApp</th>
-                    <th style="width: 25%;">Data/Hora da Reserva</th>
-                    <th style="width: 15%;">Status</th>
-                </tr>
+                    <th style="width: 20%;">Data/Hora</th>
+                    <th style="width: 10%;">Status</th>
+                    <th class="col-acao" style="width: 15%;">Ação</th> </tr>
             </thead>
             <tbody id="tabelaCorpo">
-                <tr><td colspan="5" class="text-center text-bold" style="padding: 30px;">Aguarde, conectando ao sistema...</td></tr>
+                <tr><td colspan="6" class="text-center text-bold" style="padding: 30px;">Aguarde, conectando ao sistema...</td></tr>
             </tbody>
         </table>
 
@@ -105,7 +110,7 @@
     </div>
 
     <script>
-        // 🚨 CONFIGURAÇÕES PREENCHIDAS
+        // 🚨 COLE AQUI A SUA URL DA API ATUALIZADA 
         const API_URL = "https://script.google.com/macros/s/AKfycbysnRQb5xxrH4BoqUi7dh5PH80GfU4jIbZmiX_Kd3FB06iln_7S4uawu7RP649ZdUDAIA/exec";
         const VALOR_COTA = 10; 
 
@@ -113,21 +118,19 @@
         const hoje = new Date();
         document.getElementById('dataAtual').innerText = hoje.toLocaleDateString('pt-BR') + ' às ' + hoje.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 
-        // Função 1: Puxa as edições para montar o Menu Select
         async function inicializarPagina() {
             try {
                 let resposta = await fetch(`${API_URL}?action=getEdicoes`);
                 let edicoes = await resposta.json();
                 
                 let select = document.getElementById('edicaoSelect');
-                select.innerHTML = ""; // Limpa o "Carregando..."
+                select.innerHTML = "";
 
                 if (edicoes.length === 0) {
                     select.innerHTML = '<option value="">Nenhuma edição encontrada na planilha</option>';
                     return;
                 }
 
-                // Preenche as opções
                 edicoes.forEach(ed => {
                     let option = document.createElement('option');
                     option.value = ed;
@@ -135,47 +138,40 @@
                     select.appendChild(option);
                 });
 
-                // Verifica se o usuário já digitou alguma edição na URL do navegador
                 const urlParams = new URLSearchParams(window.location.search);
                 const edicaoNaUrl = urlParams.get('edicao');
 
                 if (edicaoNaUrl && edicoes.includes(edicaoNaUrl)) {
-                    select.value = edicaoNaUrl; // Seleciona a da URL
+                    select.value = edicaoNaUrl;
                 } else {
-                    select.value = edicoes[edicoes.length - 1]; // Se não tiver, seleciona a última (mais recente)
+                    select.value = edicoes[edicoes.length - 1]; 
                 }
 
-                // Agora que sabemos a edição, puxamos o relatório
                 carregarRelatorio(select.value);
 
             } catch (erro) {
                 console.error(erro);
-                document.getElementById('tabelaCorpo').innerHTML = "<tr><td colspan='5' class='text-center text-bold' style='color: red;'>Erro ao carregar lista de edições.</td></tr>";
+                document.getElementById('tabelaCorpo').innerHTML = "<tr><td colspan='6' class='text-center text-bold' style='color: red;'>Erro ao carregar lista de edições.</td></tr>";
             }
         }
 
-        // Função 2: Executa quando o usuário escolhe outra opção no Menu Select
         function mudarEdicao() {
             const select = document.getElementById('edicaoSelect');
             const edicaoEscolhida = select.value;
 
-            // Atualiza a URL visualmente para você poder favoritar ou enviar o link pra alguém já filtrado
             const urlParams = new URLSearchParams(window.location.search);
             urlParams.set('edicao', edicaoEscolhida);
             window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
 
-            // Mostra tela de carregamento na tabela
-            document.getElementById('tabelaCorpo').innerHTML = "<tr><td colspan='5' class='text-center text-bold' style='padding: 30px;'>🔄 Mudando de edição... Aguarde.</td></tr>";
+            document.getElementById('tabelaCorpo').innerHTML = "<tr><td colspan='6' class='text-center text-bold' style='padding: 30px;'>🔄 Mudando de edição... Aguarde.</td></tr>";
             
             carregarRelatorio(edicaoEscolhida);
         }
 
-        // Função 3: O carregador do relatório principal (agora recebe a edição como parâmetro)
         async function carregarRelatorio(edicaoSelecionada) {
             const urlParams = new URLSearchParams(window.location.search);
             const tipo = urlParams.get('tipo') || 'todos';
             
-            // Textos visuais
             let tituloRelatorio = "RELATÓRIO GERAL";
             let lblQtd = "Total de Bilhetes Listados";
             let lblFaturamento = "Valor Total (Bruto)";
@@ -196,7 +192,6 @@
             document.getElementById('lblFaturamento').innerText = lblFaturamento;
 
             try {
-                // Aqui fazemos a busca informando a edição pro Google Sheets!
                 let resposta = await fetch(`${API_URL}?action=getReportData&tipo=${tipo}&edicao=${encodeURIComponent(edicaoSelecionada)}`);
                 let dados = await resposta.json();
                 
@@ -204,7 +199,7 @@
                 corpo.innerHTML = "";
 
                 if (dados.length === 0) {
-                    corpo.innerHTML = "<tr><td colspan='5' class='text-center text-bold' style='padding: 20px; color: #666;'>Nenhum registro encontrado para este filtro nesta edição.</td></tr>";
+                    corpo.innerHTML = "<tr><td colspan='6' class='text-center text-bold' style='padding: 20px; color: #666;'>Nenhum registro encontrado para este filtro nesta edição.</td></tr>";
                     document.getElementById('areaResumo').style.display = 'none';
                     return;
                 }
@@ -222,6 +217,11 @@
 
                     let exibicaoNumero = qtdCotasPessoa > 1 ? `${item.numero} <br><small><b>(${qtdCotasPessoa} cotas)</b></small>` : item.numero;
 
+                    // Lógica do botão de WhatsApp
+                    let numeroLimpo = item.whatsapp.replace(/\D/g, ''); // Garante que só tenha números para o link não bugar
+                    let mensagem = `Olá, ${item.nome}! A nova edição do Pix Premiado já está no ar. Venha garantir seus números da sorte! 🍀`;
+                    let linkWhatsapp = `https://wa.me/${numeroLimpo}?text=${encodeURIComponent(mensagem)}`;
+
                     corpo.innerHTML += `
                         <tr>
                             <td class="text-center text-bold" style="font-size: 15px; line-height: 1.4;">${exibicaoNumero}</td>
@@ -229,6 +229,9 @@
                             <td class="text-center">${item.whatsapp}</td>
                             <td class="text-center" style="color: #666;">${item.data}</td>
                             <td class="text-center ${statusClasse}">${item.status.toUpperCase()}</td>
+                            <td class="text-center col-acao">
+                                <a href="${linkWhatsapp}" target="_blank" class="btn-whats-pequeno">📲 Convidar</a>
+                            </td>
                         </tr>
                     `;
                 });
@@ -241,11 +244,10 @@
                 document.getElementById('areaResumo').style.display = 'flex';
 
             } catch (erro) {
-                document.getElementById('tabelaCorpo').innerHTML = "<tr><td colspan='5' class='text-center text-bold' style='color: red;'>Erro ao carregar dados do Google.</td></tr>";
+                document.getElementById('tabelaCorpo').innerHTML = "<tr><td colspan='6' class='text-center text-bold' style='color: red;'>Erro ao carregar dados do Google.</td></tr>";
             }
         }
 
-        // Inicia todo o processo assim que a tela abre!
         inicializarPagina();
     </script>
 </body>
