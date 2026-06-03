@@ -21,7 +21,7 @@
         /* Tabela */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         th { background-color: #2a5298; color: white; padding: 12px; font-weight: bold; text-align: center; text-transform: uppercase; border: 1px solid #1e3c72; }
-        td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: middle; }
         tr:nth-child(even) { background-color: #f9f9f9; } /* Linhas zebradas */
         
         /* Alinhamentos Específicos */
@@ -73,9 +73,9 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 8%;">Nº</th>
-                    <th style="width: 35%;">Nome do Cliente</th>
-                    <th style="width: 17%;">WhatsApp</th>
+                    <th style="width: 15%;">Nº dos Bilhetes</th>
+                    <th style="width: 30%;">Nome do Cliente</th>
+                    <th style="width: 15%;">WhatsApp</th>
                     <th style="width: 25%;">Data/Hora da Reserva</th>
                     <th style="width: 15%;">Status</th>
                 </tr>
@@ -144,16 +144,25 @@
                     return;
                 }
 
+                let totalCotasReais = 0; // Nova variável para fazer a matemática certa com o agrupamento
+
                 dados.forEach(item => {
-                    // Define a cor do status para ficar bonito na tabela
+                    // Soma as cotas (Fallback para 1 caso o backend mande vazio)
+                    let qtdCotasPessoa = item.quantidade || 1; 
+                    totalCotasReais += qtdCotasPessoa;
+
+                    // Define a cor do status
                     let statusClasse = "";
                     let st = item.status.toString().trim().toLowerCase();
                     if (st === 'pago' || st === 'premiado') statusClasse = "status-pago";
                     else if (st === 'reservado') statusClasse = "status-reservado";
 
+                    // Formatação bonita para quem comprou várias cotas (ex: 1, 2, 3 (3 cotas))
+                    let exibicaoNumero = qtdCotasPessoa > 1 ? `${item.numero} <br><small><b>(${qtdCotasPessoa} cotas)</b></small>` : item.numero;
+
                     corpo.innerHTML += `
                         <tr>
-                            <td class="text-center text-bold" style="font-size: 16px;">${item.numero}</td>
+                            <td class="text-center text-bold" style="font-size: 15px; line-height: 1.4;">${exibicaoNumero}</td>
                             <td class="text-bold">${item.nome}</td>
                             <td class="text-center">${item.whatsapp}</td>
                             <td class="text-center" style="color: #666;">${item.data}</td>
@@ -162,15 +171,14 @@
                     `;
                 });
 
-                // --- CÁLCULO FINANCEIRO ---
-                let totalItens = dados.length;
-                let faturamento = totalItens * VALOR_COTA;
+                // --- CÁLCULO FINANCEIRO CORRIGIDO ---
+                let faturamento = totalCotasReais * VALOR_COTA;
                 
                 // Formata para moeda BRL (R$ 0.000,00)
                 let faturamentoFormatado = faturamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
                 // Preenche os quadros
-                document.getElementById('valQtd').innerText = totalItens;
+                document.getElementById('valQtd').innerText = totalCotasReais;
                 document.getElementById('valFaturamento').innerText = faturamentoFormatado;
                 document.getElementById('areaResumo').style.display = 'flex';
 
@@ -186,4 +194,3 @@
     </script>
 </body>
 </html>
-
