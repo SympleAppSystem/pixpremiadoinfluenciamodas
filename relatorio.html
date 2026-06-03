@@ -4,14 +4,19 @@
     <meta charset="UTF-8">
     <title>Relatório - Pix Influência</title>
     <style>
-        /* Configuração de Impressão Horizontal (Paisagem) */
         @page { size: A4 landscape; margin: 15mm; }
         
-        /* Estilos Premium */
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; color: #333; }
-        
         .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         
+        /* Menu de Controles (Select e Botão de Imprimir) */
+        .controls-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid #2a5298;}
+        .select-group label { font-weight: bold; margin-right: 10px; color: #333; font-size: 16px;}
+        .select-group select { padding: 10px 15px; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; outline: none; min-width: 250px; font-weight: bold; color: #2a5298; cursor: pointer; background-color: #f9f9f9;}
+        
+        .btn-imprimir { padding: 12px 25px; background: #FFD700; color: #000; border: none; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4); transition: 0.3s; }
+        .btn-imprimir:hover { background: #e6c200; transform: translateY(-2px); }
+
         /* Cabeçalho do Relatório */
         .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #2a5298; padding-bottom: 15px; margin-bottom: 25px; }
         .header-titles h1 { text-transform: uppercase; font-size: 24px; font-weight: 900; color: #000; margin: 0 0 5px 0; letter-spacing: 1px; }
@@ -22,13 +27,11 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         th { background-color: #2a5298; color: white; padding: 12px; font-weight: bold; text-align: center; text-transform: uppercase; border: 1px solid #1e3c72; }
         td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: middle; }
-        tr:nth-child(even) { background-color: #f9f9f9; } /* Linhas zebradas */
+        tr:nth-child(even) { background-color: #f9f9f9; }
         
-        /* Alinhamentos Específicos */
         .text-center { text-align: center; }
         .text-bold { font-weight: bold; }
         
-        /* Cores de Status na Tabela */
         .status-pago { color: #2E8B57; font-weight: bold; background-color: #e8f5e9; }
         .status-reservado { color: #f39c12; font-weight: bold; background-color: #fdf2e9; }
         
@@ -39,23 +42,25 @@
         .summary-title { font-size: 12px; color: #777; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; }
         .summary-value { font-size: 26px; font-weight: 900; color: #333; }
         .summary-value.green-text { color: #2E8B57; }
-
-        /* Botão de Imprimir (Invisível na hora da impressão) */
-        .btn-area { margin-bottom: 20px; text-align: right; }
-        .btn-imprimir { padding: 12px 25px; background: #FFD700; color: #000; border: none; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4); transition: 0.3s; }
-        .btn-imprimir:hover { background: #e6c200; transform: translateY(-2px); }
         
         @media print { 
             body { background: white; padding: 0; margin: 0; }
             .container { box-shadow: none; padding: 0; }
-            .btn-area { display: none; } 
+            .controls-wrapper { display: none !important; } /* Esconde o menu e o botão ao imprimir */
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="btn-area">
+        
+        <div class="controls-wrapper">
+            <div class="select-group">
+                <label for="edicaoSelect">📅 Edição:</label>
+                <select id="edicaoSelect" onchange="mudarEdicao()">
+                    <option value="">Carregando edições...</option>
+                </select>
+            </div>
             <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir Relatório</button>
         </div>
 
@@ -63,6 +68,7 @@
             <div class="header-titles">
                 <h1>PIX INFLUÊNCIA</h1>
                 <p id="titulo">Carregando Relatório...</p>
+                <p style="font-size: 13px; color: #666; margin-top: 5px;">Edição Filtrada: <b id="nomeEdicaoFiltro">--</b></p>
             </div>
             <div class="header-info">
                 Data de Emissão: <b id="dataAtual">--/--/----</b><br>
@@ -81,7 +87,7 @@
                 </tr>
             </thead>
             <tbody id="tabelaCorpo">
-                <tr><td colspan="5" class="text-center text-bold" style="padding: 30px;">Aguarde, puxando dados do sistema...</td></tr>
+                <tr><td colspan="5" class="text-center text-bold" style="padding: 30px;">Aguarde, conectando ao sistema...</td></tr>
             </tbody>
         </table>
 
@@ -101,18 +107,75 @@
     <script>
         // 🚨 CONFIGURAÇÕES PREENCHIDAS
         const API_URL = "https://script.google.com/macros/s/AKfycbwhjR8kVVY4joEZ8EOxh2GPgUkc8cT5tCqdo3vD8ELOnuSppqsDFlnhnKp_Yhhzdb3oXg/exec";
-        const VALOR_COTA = 10; // Valor de cada número
+        const VALOR_COTA = 10; 
 
         // Coloca a data atual no cabeçalho
         const hoje = new Date();
         document.getElementById('dataAtual').innerText = hoje.toLocaleDateString('pt-BR') + ' às ' + hoje.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 
-        async function carregarRelatorio() {
-            // Pega o tipo da URL (ex: relatorio.html?tipo=pagos)
+        // Função 1: Puxa as edições para montar o Menu Select
+        async function inicializarPagina() {
+            try {
+                let resposta = await fetch(`${API_URL}?action=getEdicoes`);
+                let edicoes = await resposta.json();
+                
+                let select = document.getElementById('edicaoSelect');
+                select.innerHTML = ""; // Limpa o "Carregando..."
+
+                if (edicoes.length === 0) {
+                    select.innerHTML = '<option value="">Nenhuma edição encontrada na planilha</option>';
+                    return;
+                }
+
+                // Preenche as opções
+                edicoes.forEach(ed => {
+                    let option = document.createElement('option');
+                    option.value = ed;
+                    option.text = ed;
+                    select.appendChild(option);
+                });
+
+                // Verifica se o usuário já digitou alguma edição na URL do navegador
+                const urlParams = new URLSearchParams(window.location.search);
+                const edicaoNaUrl = urlParams.get('edicao');
+
+                if (edicaoNaUrl && edicoes.includes(edicaoNaUrl)) {
+                    select.value = edicaoNaUrl; // Seleciona a da URL
+                } else {
+                    select.value = edicoes[edicoes.length - 1]; // Se não tiver, seleciona a última (mais recente)
+                }
+
+                // Agora que sabemos a edição, puxamos o relatório
+                carregarRelatorio(select.value);
+
+            } catch (erro) {
+                console.error(erro);
+                document.getElementById('tabelaCorpo').innerHTML = "<tr><td colspan='5' class='text-center text-bold' style='color: red;'>Erro ao carregar lista de edições.</td></tr>";
+            }
+        }
+
+        // Função 2: Executa quando o usuário escolhe outra opção no Menu Select
+        function mudarEdicao() {
+            const select = document.getElementById('edicaoSelect');
+            const edicaoEscolhida = select.value;
+
+            // Atualiza a URL visualmente para você poder favoritar ou enviar o link pra alguém já filtrado
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('edicao', edicaoEscolhida);
+            window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
+
+            // Mostra tela de carregamento na tabela
+            document.getElementById('tabelaCorpo').innerHTML = "<tr><td colspan='5' class='text-center text-bold' style='padding: 30px;'>🔄 Mudando de edição... Aguarde.</td></tr>";
+            
+            carregarRelatorio(edicaoEscolhida);
+        }
+
+        // Função 3: O carregador do relatório principal (agora recebe a edição como parâmetro)
+        async function carregarRelatorio(edicaoSelecionada) {
             const urlParams = new URLSearchParams(window.location.search);
             const tipo = urlParams.get('tipo') || 'todos';
             
-            // Define os Títulos baseados no tipo de relatório
+            // Textos visuais
             let tituloRelatorio = "RELATÓRIO GERAL";
             let lblQtd = "Total de Bilhetes Listados";
             let lblFaturamento = "Valor Total (Bruto)";
@@ -128,36 +191,35 @@
             }
 
             document.getElementById('titulo').innerText = tituloRelatorio;
+            document.getElementById('nomeEdicaoFiltro').innerText = edicaoSelecionada;
             document.getElementById('lblQtd').innerText = lblQtd;
             document.getElementById('lblFaturamento').innerText = lblFaturamento;
 
             try {
-                let resposta = await fetch(`${API_URL}?action=getReportData&tipo=${tipo}`);
+                // Aqui fazemos a busca informando a edição pro Google Sheets!
+                let resposta = await fetch(`${API_URL}?action=getReportData&tipo=${tipo}&edicao=${encodeURIComponent(edicaoSelecionada)}`);
                 let dados = await resposta.json();
                 
                 let corpo = document.getElementById('tabelaCorpo');
                 corpo.innerHTML = "";
 
                 if (dados.length === 0) {
-                    corpo.innerHTML = "<tr><td colspan='5' class='text-center text-bold' style='padding: 20px; color: #666;'>Nenhum registro encontrado para este filtro.</td></tr>";
+                    corpo.innerHTML = "<tr><td colspan='5' class='text-center text-bold' style='padding: 20px; color: #666;'>Nenhum registro encontrado para este filtro nesta edição.</td></tr>";
                     document.getElementById('areaResumo').style.display = 'none';
                     return;
                 }
 
-                let totalCotasReais = 0; // Nova variável para fazer a matemática certa com o agrupamento
+                let totalCotasReais = 0; 
 
                 dados.forEach(item => {
-                    // Soma as cotas (Fallback para 1 caso o backend mande vazio)
                     let qtdCotasPessoa = item.quantidade || 1; 
                     totalCotasReais += qtdCotasPessoa;
 
-                    // Define a cor do status
                     let statusClasse = "";
                     let st = item.status.toString().trim().toLowerCase();
                     if (st === 'pago' || st === 'premiado') statusClasse = "status-pago";
                     else if (st === 'reservado') statusClasse = "status-reservado";
 
-                    // Formatação bonita para quem comprou várias cotas (ex: 1, 2, 3 (3 cotas))
                     let exibicaoNumero = qtdCotasPessoa > 1 ? `${item.numero} <br><small><b>(${qtdCotasPessoa} cotas)</b></small>` : item.numero;
 
                     corpo.innerHTML += `
@@ -171,26 +233,20 @@
                     `;
                 });
 
-                // --- CÁLCULO FINANCEIRO CORRIGIDO ---
                 let faturamento = totalCotasReais * VALOR_COTA;
-                
-                // Formata para moeda BRL (R$ 0.000,00)
                 let faturamentoFormatado = faturamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-                // Preenche os quadros
                 document.getElementById('valQtd').innerText = totalCotasReais;
                 document.getElementById('valFaturamento').innerText = faturamentoFormatado;
                 document.getElementById('areaResumo').style.display = 'flex';
-
-                // Auto-imprimir após 1.5 segundos para dar tempo de carregar o visual
-                setTimeout(() => { window.print(); }, 1500);
 
             } catch (erro) {
                 document.getElementById('tabelaCorpo').innerHTML = "<tr><td colspan='5' class='text-center text-bold' style='color: red;'>Erro ao carregar dados do Google.</td></tr>";
             }
         }
 
-        carregarRelatorio();
+        // Inicia todo o processo assim que a tela abre!
+        inicializarPagina();
     </script>
 </body>
 </html>
