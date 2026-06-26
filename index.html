@@ -162,7 +162,7 @@
 
     <script>
         // 🚨 CONFIGURAÇÕES FIXAS (PIX E CONTATO)
-        const API_URL = "https://script.google.com/macros/s/AKfycbyItEkHyclWAOfugamFhxWE3R-67dIVHAyueGjjPRgKabQ7tRtyIBGtw5uwAXzYpGW-Hw/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbx76uYxnnkLRpTs4EpLSuhvSrJpkTVOeO2AKcRI1stoY9O3KqpH0GDTF8b3UzwACyiw/exec"; 
         const SEU_WHATSAPP_ADMIN = "5575999512480"; 
         const MINHA_CHAVE_PIX = "75999512480"; 
         const NOME_RECEBEDOR = "JESSICA SOUZA DO NASCIMENTO"; 
@@ -220,26 +220,36 @@
         }
 
         async function carregarNumeros() {
-            try {
-                let resposta = await fetch(API_URL + "?action=getNumbers");
-                let dados = await resposta.json();
-                document.getElementById('loading').style.display = 'none';
-                let grid = document.getElementById('grid');
-                grid.innerHTML = '';
-                
-                numerosEscolhidos = [];
-                atualizarBarraCheckout();
+    try {
+        let resposta = await fetch(API_URL + "?action=getNumbers");
+        let dados = await resposta.json();
+        document.getElementById('loading').style.display = 'none';
+        let grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        
+        numerosEscolhidos = [];
+        atualizarBarraCheckout();
 
-                dados.forEach(item => {
-                    let div = document.createElement('div');
-                    let statusClasse = item.status.toString().trim().toLowerCase();
-                    div.className = 'number-box ' + statusClasse;
-                    div.innerText = item.numero;
-                    if (statusClasse === 'livre') { div.onclick = function() { toggleNumero(item.numero, this); }; }
-                    grid.appendChild(div);
-                });
-            } catch (erro) { document.getElementById('loading').innerText = "Erro ao carregar os números."; }
+        // Verifica se a lista de números está vazia
+        if (dados.length === 0) {
+            grid.innerHTML = '<p style="text-align:center;color:#888;grid-column:1/-1;font-size:18px;padding:20px;">Nenhum número disponível para esta edição.</p>';
+            return;
         }
+
+        dados.forEach(item => {
+            let div = document.createElement('div');
+            let statusClasse = item.status.toString().trim().toLowerCase();
+            div.className = 'number-box ' + statusClasse;
+            div.innerText = item.numero;
+            if (statusClasse === 'livre') {
+                div.onclick = function() { toggleNumero(item.numero, this); };
+            }
+            grid.appendChild(div);
+        });
+    } catch (erro) {
+        document.getElementById('loading').innerText = "Erro ao carregar os números.";
+    }
+}
 
         function toggleNumero(numero, elemento) {
             if (numerosEscolhidos.includes(numero)) {
