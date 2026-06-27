@@ -161,14 +161,15 @@
     <div id="modalAviso"><div class="aviso-content"><div style="font-size: 50px;">⚠️</div><h2 style="color: #f44336; margin-top: 0;">Atenção!</h2><p id="textoAviso" style="color: #444; font-size: 16px; margin-bottom: 15px;">Mensagem de erro aqui.</p><button class="btn-aviso" onclick="fecharAviso()">Entendi</button></div></div>
 
     <script>
-        // 🚨 CONFIGURAÇÕES FIXAS (PIX E CONTATO)
-        const API_URL = "https://script.google.com/macros/s/AKfycbzuwfrshJQ6rOruki819rdEMrNRCWFDb5sbalvFrsw4elTGmOdgGMwefmVMiOp2kxU-fA/exec"; 
+        // 🚨 CONFIRME SE O SEU LINK DA API DO GOOGLE ESTÁ AQUI
+        const API_URL = "https://script.google.com/macros/s/AKfycbysdfH8WAFAJPploQ0LY5Sq1UGi1GSm0SBziIZ27dVSlGR31IzikptCblw570SSEEUJog/exec"; 
+        
         const SEU_WHATSAPP_ADMIN = "5575999512480"; 
         const MINHA_CHAVE_PIX = "75999512480"; 
         const NOME_RECEBEDOR = "JESSICA SOUZA DO NASCIMENTO"; 
         const BANCO_RECEBEDOR = "BANCO ITAÚ"; 
         
-        let VALOR_UNITARIO = 10.00; // Vai ser substituído pelo banco de dados
+        let VALOR_UNITARIO = 10.00;
         let numerosEscolhidos = [];
 
         document.getElementById('chavePixTexto').innerText = MINHA_CHAVE_PIX;
@@ -186,17 +187,14 @@
         function fecharAviso() { document.getElementById('modalAviso').style.display = 'none'; }
         function formatarMoeda(valor) { return "R$ " + valor.toFixed(2).replace('.', ','); }
 
-        // BUSCA AS CONFIGURAÇÕES DINÂMICAS DO BANCO DE DADOS
         async function iniciarSistema() {
             try {
                 let resConfig = await fetch(API_URL + "?action=getConfig");
                 let config = await resConfig.json();
                 
-                // Atualiza o Valor da Cota Global
                 VALOR_UNITARIO = config.valorCota;
                 document.getElementById('textoValorCota').innerText = formatarMoeda(VALOR_UNITARIO);
                 
-                // Constrói os Prêmios na Tela
                 let container = document.getElementById('prizesContainer');
                 container.innerHTML = "";
                 
@@ -212,7 +210,6 @@
                     `;
                 });
 
-                // Depois de configurar o visual, carrega os números
                 carregarNumeros();
             } catch (erro) {
                 document.getElementById('loading').innerText = "Erro ao carregar o sistema.";
@@ -220,36 +217,35 @@
         }
 
         async function carregarNumeros() {
-    try {
-        let resposta = await fetch(API_URL + "?action=getNumbers");
-        let dados = await resposta.json();
-        document.getElementById('loading').style.display = 'none';
-        let grid = document.getElementById('grid');
-        grid.innerHTML = '';
-        
-        numerosEscolhidos = [];
-        atualizarBarraCheckout();
+            try {
+                let resposta = await fetch(API_URL + "?action=getNumbers");
+                let dados = await resposta.json();
+                document.getElementById('loading').style.display = 'none';
+                let grid = document.getElementById('grid');
+                grid.innerHTML = '';
+                
+                numerosEscolhidos = [];
+                atualizarBarraCheckout();
 
-        // Verifica se a lista de números está vazia
-        if (dados.length === 0) {
-            grid.innerHTML = '<p style="text-align:center;color:#888;grid-column:1/-1;font-size:18px;padding:20px;">Nenhum número disponível para esta edição.</p>';
-            return;
-        }
+                if (dados.length === 0) {
+                    grid.innerHTML = '<p style="text-align:center;color:#888;grid-column:1/-1;font-size:18px;padding:20px;">Nenhum número disponível para esta edição.</p>';
+                    return;
+                }
 
-        dados.forEach(item => {
-            let div = document.createElement('div');
-            let statusClasse = item.status.toString().trim().toLowerCase();
-            div.className = 'number-box ' + statusClasse;
-            div.innerText = item.numero;
-            if (statusClasse === 'livre') {
-                div.onclick = function() { toggleNumero(item.numero, this); };
+                dados.forEach(item => {
+                    let div = document.createElement('div');
+                    let statusClasse = item.status.toString().trim().toLowerCase();
+                    div.className = 'number-box ' + statusClasse;
+                    div.innerText = item.numero;
+                    if (statusClasse === 'livre') {
+                        div.onclick = function() { toggleNumero(item.numero, this); };
+                    }
+                    grid.appendChild(div);
+                });
+            } catch (erro) {
+                document.getElementById('loading').innerText = "Erro ao carregar os números.";
             }
-            grid.appendChild(div);
-        });
-    } catch (erro) {
-        document.getElementById('loading').innerText = "Erro ao carregar os números.";
-    }
-}
+        }
 
         function toggleNumero(numero, elemento) {
             if (numerosEscolhidos.includes(numero)) {
@@ -345,7 +341,6 @@
             });
         }
 
-        // Chama a função principal de inicialização ao abrir a tela
         iniciarSistema();
     </script>
 </body>
