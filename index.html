@@ -18,7 +18,6 @@
         /* Grade de Prêmios Dinâmica */
         .prizes-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 900px; margin: -50px auto 20px auto; padding: 0 15px; }
         .prize-card { background: white; border-radius: 15px; padding: 20px 15px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1); position: relative; overflow: hidden; border: 1px solid #eaeaea; flex: 1; min-width: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.3s;}
-        .prize-card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.15); }
         
         /* Cores Dinâmicas dos Topos */
         .top-ouro { position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #FFD700, #FFA500); }
@@ -39,7 +38,6 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(55px, 1fr)); gap: 10px; max-width: 650px; margin: 0 auto 50px auto; padding: 0 15px; }
         
         .number-box { padding: 15px 0; font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; text-align: center; box-shadow: 0 3px 6px rgba(0,0,0,0.08); transition: all 0.2s ease; }
-        .number-box:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.15); }
         .number-box:active { transform: scale(0.95); }
         
         .number-box.livre { background-color: #ffffff; color: #2E8B57; border: 2px solid #2E8B57; }
@@ -58,18 +56,15 @@
         .checkout-info { font-size: 14px; font-weight: bold; color: #555; line-height: 1.2;}
         .checkout-total { color: #2E8B57; font-size: 24px; font-weight: 900; display: block; margin-top: 2px;}
         .checkout-btn { background: linear-gradient(90deg, #2E8B57, #267347); color: white; border: none; padding: 15px 25px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(46,139,87,0.3); transition: 0.3s;}
-        .checkout-btn:hover { background: linear-gradient(90deg, #267347, #1e5c38); transform: translateY(-2px); }
 
         /* Modais */
         #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(5px); }
         .modal-content { background: white; padding: 30px; border-radius: 20px; width: 92%; max-width: 400px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5); overflow-y: auto; max-height: 90vh; }
         
         input { width: 100%; padding: 14px; margin: 8px 0 15px 0; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; outline: none; transition: border 0.3s; }
-        input:focus { border-color: #2a5298; }
         .zap-dica { font-size: 13px; color: #666; text-align: left; display: block; margin: -10px 0 15px 5px; line-height: 1.4;}
         
         button { padding: 16px; background: #2a5298; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; margin-bottom: 12px; transition: 0.3s; }
-        button:hover { background: #1e3c72; }
         .close-btn { background: #f1f3f5; color: #555; }
         .close-btn:hover { background: #e2e6ea; }
         
@@ -107,8 +102,8 @@
         <p style="font-size: 12px; color: #888; margin-top: 5px;">Apenas números pagos concorrem.</p>
     </div>
 
-    <div class="instrucoes">👇 Escolha os seus números da sorte 👇</div>
-    <p id="loading">A carregar configurações mágicas...</p>
+    <div class="instrucoes" id="instrucoesTxt">👇 Escolha os seus números da sorte 👇</div>
+    <p id="loading">A carregar o sistema...</p>
     
     <div class="grid" id="grid"></div>
 
@@ -126,13 +121,13 @@
                 <span style="font-size: 14px; color: #666; font-weight: bold;">Números Escolhidos:</span>
                 <div class="numeros-lista" id="numSelecionado"></div>
                 <span class="valor-destaque" id="valorTotalModal">Total: R$ 0,00</span>
-                <input type="text" id="nome" placeholder="Seu Nome Completo">
+                <input type="text" id="nome" placeholder="O seu Nome Completo">
                 <input type="tel" id="whatsapp" value="55" placeholder="Ex: 5511999999999" maxlength="13">
                 <span class="zap-dica">💡 <b>Dica:</b> O <b>55</b> já está aí. Adicione o DDD + o dígito 9 + o seu número!</span>
                 <button onclick="confirmarReserva()" id="btnReservar">Concluir Reserva</button>
                 <button class="close-btn" onclick="fecharModal()">Voltar aos números</button>
             </div>
-
+            
             <div id="telaSucesso" style="display: none;">
                 <div class="success-icon">✅</div>
                 <h2 style="color: #2E8B57; margin-top: 0;">Quase lá!</h2>
@@ -152,7 +147,7 @@
                 <span class="valor-destaque" id="valorTotalSucesso">Total: R$ 0,00</span>
                 
                 <a href="#" id="linkZap" target="_blank" class="whatsapp-btn">📱 Enviar Comprovante no WhatsApp</a>
-                <a href="#" id="linkSuporte" target="_blank" class="suporte-link">Dúvidas ou problemas com o PIX? Fale conosco.</a>
+                <a href="#" id="linkSuporte" target="_blank" class="suporte-link">Dúvidas ou problemas com o PIX? Fale connosco.</a>
                 <button class="close-btn" onclick="fecharModal(true)" style="margin-top: 10px;">Fechar</button>
             </div>
         </div>
@@ -161,16 +156,15 @@
     <div id="modalAviso"><div class="aviso-content"><div style="font-size: 50px;">⚠️</div><h2 style="color: #f44336; margin-top: 0;">Atenção!</h2><p id="textoAviso" style="color: #444; font-size: 16px; margin-bottom: 15px;">Mensagem de erro aqui.</p><button class="btn-aviso" onclick="fecharAviso()">Entendi</button></div></div>
 
     <script>
-        // 🚨 CONFIRME SE O SEU LINK DA API DO GOOGLE ESTÁ AQUI
-        const API_URL = "https://script.google.com/macros/s/AKfycbzApdlm5J8RUkhCvjAkWLfOszRX9cJar3QW_rdnGl1bCNNmZbJiBiFTZ-0krgmpwzp2FA/exec"; 
-        
+        const API_URL = "https://script.google.com/macros/s/AKfycbzyotIJ0Pisyfz0RjTZkFPgNkPox8lMBvXdDlXROI7cLGZFJHdmSfPbhe5d6a_8iIKmeQ/exec"; 
         const SEU_WHATSAPP_ADMIN = "5575999512480"; 
         const MINHA_CHAVE_PIX = "75999512480"; 
         const NOME_RECEBEDOR = "JESSICA SOUZA DO NASCIMENTO"; 
         const BANCO_RECEBEDOR = "BANCO ITAÚ"; 
         
-        let VALOR_UNITARIO = 10.00;
+        let VALOR_UNITARIO = 10.00; 
         let numerosEscolhidos = [];
+        let edicaoEstaAberta = true; // A TRAVA MESTRA
 
         document.getElementById('chavePixTexto').innerText = MINHA_CHAVE_PIX;
         document.getElementById('nomePixTexto').innerText = NOME_RECEBEDOR;
@@ -192,23 +186,39 @@
                 let resConfig = await fetch(API_URL + "?action=getConfig");
                 let config = await resConfig.json();
                 
+                if(!config.edicao) {
+                    document.getElementById('loading').innerText = "Nenhuma edição ativa no momento.";
+                    return;
+                }
+
+                // LÓGICA DO CADEADO (Verifica se está Concluída)
+                let statusEd = config.statusEdicao ? config.statusEdicao.toLowerCase() : "ativa";
+                if (statusEd === "concluída" || statusEd === "concluida" || statusEd === "encerrada") {
+                    edicaoEstaAberta = false;
+                    document.getElementById('instrucoesTxt').innerHTML = "🎉 EDIÇÃO ENCERRADA - SORTEIO REALIZADO 🎉";
+                    document.getElementById('instrucoesTxt').style.color = "#f44336";
+                    document.getElementById('instrucoesTxt').style.fontSize = "22px";
+                }
+
                 VALOR_UNITARIO = config.valorCota;
                 document.getElementById('textoValorCota').innerText = formatarMoeda(VALOR_UNITARIO);
                 
                 let container = document.getElementById('prizesContainer');
                 container.innerHTML = "";
                 
-                config.premios.forEach(premio => {
-                    let imgHtml = premio.imagem ? `<img src="${premio.imagem}" class="prize-img" alt="Prêmio">` : "";
-                    container.innerHTML += `
-                        <div class="prize-card">
-                            <div class="top-${premio.corClass}"></div>
-                            <span class="prize-badge">${premio.icone} ${premio.titulo}</span>
-                            <div class="prize-name">${premio.nome}</div>
-                            ${imgHtml}
-                        </div>
-                    `;
-                });
+                if (config.premios) {
+                    config.premios.forEach(premio => {
+                        let imgHtml = premio.imagem ? `<img src="${premio.imagem}" class="prize-img" alt="Prêmio">` : "";
+                        container.innerHTML += `
+                            <div class="prize-card">
+                                <div class="top-${premio.corClass}"></div>
+                                <span class="prize-badge">${premio.icone} ${premio.titulo}</span>
+                                <div class="prize-name">${premio.nome}</div>
+                                ${imgHtml}
+                            </div>
+                        `;
+                    });
+                }
 
                 carregarNumeros();
             } catch (erro) {
@@ -237,8 +247,17 @@
                     let statusClasse = item.status.toString().trim().toLowerCase();
                     div.className = 'number-box ' + statusClasse;
                     div.innerText = item.numero;
+                    
                     if (statusClasse === 'livre') {
-                        div.onclick = function() { toggleNumero(item.numero, this); };
+                        if (edicaoEstaAberta) {
+                            // Se a edição está ativa, permite clicar e comprar
+                            div.onclick = function() { toggleNumero(item.numero, this); };
+                        } else {
+                            // Se a edição encerrou, bloqueia o clique e deixa o número transparente
+                            div.style.opacity = '0.5';
+                            div.style.cursor = 'not-allowed';
+                            div.title = 'Sorteio Realizado';
+                        }
                     }
                     grid.appendChild(div);
                 });
@@ -291,7 +310,7 @@
             let whatsapp = document.getElementById('whatsapp').value;
             let btn = document.getElementById('btnReservar');
             
-            if (!nome || whatsapp.length !== 13) { mostrarErro("Preencha seu nome e os 13 números do WhatsApp (55 + DDD + 9 + Número)."); return; }
+            if (!nome || whatsapp.length !== 13) { mostrarErro("Preencha o seu nome e os 13 números do WhatsApp (55 + DDD + 9 + Número)."); return; }
             
             btn.innerText = "A processar...";
             btn.disabled = true;
@@ -313,7 +332,7 @@
                     document.getElementById('numSucesso').innerText = strNumeros;
                     document.getElementById('valorTotalSucesso').innerText = "Total: " + totalPagar;
                     
-                    let msg = `Olá! Meu nome é ${nome}. Reservei as cotas [${strNumeros}] no Pix Influência. Segue o comprovante de ${totalPagar}:`;
+                    let msg = `Olá! O meu nome é ${nome}. Reservei as cotas [${strNumeros}] no Pix Influência. Segue o comprovante de ${totalPagar}:`;
                     document.getElementById('linkZap').href = `https://wa.me/${SEU_WHATSAPP_ADMIN}?text=${encodeURIComponent(msg)}`;
                     
                     numerosEscolhidos = [];
@@ -326,7 +345,7 @@
                     btn.disabled = false; 
                 }
             } catch (erro) { 
-                mostrarErro("Erro de conexão. Tente novamente."); 
+                mostrarErro("Erro de ligação. Tente novamente."); 
                 btn.innerText = "Concluir Reserva"; 
                 btn.disabled = false; 
             }
