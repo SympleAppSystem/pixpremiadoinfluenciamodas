@@ -1,192 +1,234 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sorteio Oficial - Pix Influência</title>
-  <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: radial-gradient(circle, #1e1e1e 0%, #000000 100%); color: white; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-    .container { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 215, 0, 0.3); padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); width: 90%; max-width: 550px; margin: 20px 0; }
-    h1 { color: #FFD700; margin-top: 0; font-size: 28px; text-transform: uppercase; letter-spacing: 2px;}
-    
-    .premio-atual-box { background: rgba(255, 215, 0, 0.1); border: 2px solid #FFD700; padding: 15px; border-radius: 10px; margin-bottom: 30px; }
-    .premio-label { font-size: 14px; color: #ccc; text-transform: uppercase; letter-spacing: 1px;}
-    .premio-nome { font-size: 26px; font-weight: 900; color: #fff; margin-top: 5px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteio - Pix Influência</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-    .caixa-roleta { background: linear-gradient(135deg, #FFD700 0%, #F57C00 100%); width: 160px; height: 160px; margin: 0 auto 30px auto; display: flex; justify-content: center; align-items: center; border-radius: 50%; box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); border: 6px solid white; }
-    #numeroExibicao { font-size: 65px; font-weight: 900; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .card-sorteio {
+            background-color: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            position: relative;
+        }
 
-    .historico-vencedores { margin-top: 25px; text-align: left; }
-    .card-vencedor { background: rgba(255, 255, 255, 0.1); border-left: 5px solid #FFD700; padding: 15px; border-radius: 8px; margin-bottom: 10px; animation: fadeIn 0.5s ease-in; }
-    .card-vencedor.prata { border-left-color: #C0C0C0; }
-    .card-vencedor.bronze { border-left-color: #cd7f32; }
-    
-    .vencedor-titulo { font-size: 14px; color: #FFD700; font-weight: bold; margin-bottom: 5px;}
-    .card-vencedor.prata .vencedor-titulo { color: #C0C0C0; }
-    .card-vencedor.bronze .vencedor-titulo { color: #cd7f32; }
-    .vencedor-dados { font-size: 18px; color: white; }
-    .vencedor-zap { font-size: 13px; color: #aaa; margin-top: 5px; }
+        .titulo-tela {
+            color: #FFD700;
+            font-size: 24px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+        }
 
-    button { background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%); color: white; border: none; padding: 18px 30px; font-size: 20px; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; width: 100%; }
-    button:hover { transform: scale(1.03); box-shadow: 0 8px 25px rgba(76, 175, 80, 0.6);}
-    button:disabled { background: #444; color: #777; cursor: not-allowed; box-shadow: none; transform: none;}
+        .box-premio {
+            border: 1px solid #FFD700;
+            border-radius: 12px;
+            padding: 15px;
+            background-color: rgba(255, 215, 0, 0.05);
+            margin-bottom: 30px;
+        }
 
-    #modalAviso { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); }
-    .aviso-content { background: #1e1e1e; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; border: 2px solid #f44336; box-shadow: 0 10px 30px rgba(244, 67, 54, 0.4); }
-    .btn-aviso { background: #f44336; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: 0.3s; text-transform: uppercase; box-shadow: none; margin-top: 15px; }
+        .box-premio p {
+            margin: 0 0 5px 0;
+            font-size: 12px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  </style>
+        .box-premio h2 {
+            margin: 0;
+            font-size: 22px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .circulo-roleta {
+            background: linear-gradient(135deg, #ff9800, #ffc107);
+            border: 5px solid white;
+            border-radius: 50%;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 40px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 70px;
+            font-weight: 900;
+            color: white;
+            box-shadow: 0 0 30px rgba(255, 152, 0, 0.5);
+            transition: all 0.3s;
+        }
+
+        .btn-sortear {
+            background: linear-gradient(90deg, #4CAF50, #2E8B57);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 18px;
+            width: 100%;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            transition: 0.3s;
+        }
+
+        .btn-sortear:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.6);
+        }
+
+        .resultado-box {
+            display: none;
+            margin-top: 20px;
+            background: #2a5298;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px dashed #64b5f6;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Estilo para quando a edição estiver bloqueada */
+        .btn-bloqueado {
+            background: #555 !important;
+            box-shadow: none !important;
+            cursor: not-allowed !important;
+            color: #aaa !important;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>🏆 Tela de Sorteio</h1>
-    
-    <div class="premio-atual-box">
-      <div class="premio-label" id="labelPremio">Carregando Prêmios da Edição...</div>
-      <div class="premio-nome" id="nomePremioTexto">Aguarde...</div>
+    <div class="card-sorteio">
+        <div class="titulo-tela">🏆 Tela de Sorteio</div>
+        
+        <div class="box-premio">
+            <p>Sorteando Agora:</p>
+            <h2 id="nomePremioAtual">Carregando...</h2>
+        </div>
+
+        <div class="circulo-roleta" id="roleta">?</div>
+
+        <button class="btn-sortear" id="btnSortear" onclick="iniciarSorteio()">🎲 Sortear Prêmio</button>
+
+        <div class="resultado-box" id="resultadoFinal">
+            <p style="margin: 0 0 5px 0; color: #bbdefb; font-size: 14px;">🎉 GANHADOR(A) 🎉</p>
+            <h3 style="margin: 0 0 10px 0; font-size: 24px; color: white;" id="nomeGanhador">Nome do Cliente</h3>
+            <p style="margin: 0; color: #fff; font-weight: bold;">WhatsApp: <span id="zapGanhador"></span></p>
+        </div>
     </div>
 
-    <div class="caixa-roleta">
-      <span id="numeroExibicao">?</span>
-    </div>
+    <script>
+        // 🚨 COLE O SEU LINK DA API AQUI (O MESMO QUE USOU NO INDEX.HTML)
+        const API_URL = "https://script.google.com/macros/s/AKfycbzyotIJ0Pisyfz0RjTZkFPgNkPox8lMBvXdDlXROI7cLGZFJHdmSfPbhe5d6a_8iIKmeQ/exec"; 
+        
+        let edicaoEstaAberta = true; // Variável do Cadeado
 
-    <button id="btnSortear" onclick="iniciarSorteio()" disabled>Aguarde...</button>
+        async function carregarDadosSorteio() {
+            try {
+                document.getElementById('nomePremioAtual').innerText = "Conectando...";
+                
+                let resposta = await fetch(API_URL + "?action=getConfig");
+                let config = await resposta.json();
 
-    <div class="historico-vencedores" id="areaHistorico"></div>
-  </div>
+                // LÓGICA DO CADEADO
+                let statusEd = config.statusEdicao ? config.statusEdicao.toLowerCase() : "ativa";
+                if (statusEd === "concluída" || statusEd === "concluida" || statusEd === "encerrada") {
+                    edicaoEstaAberta = false;
+                    let btn = document.getElementById('btnSortear');
+                    btn.innerText = "🚫 EDIÇÃO JÁ SORTEADA";
+                    btn.classList.add('btn-bloqueado');
+                    btn.disabled = true;
+                    document.getElementById('nomePremioAtual').innerText = "Sorteio Encerrado";
+                    document.getElementById('roleta').style.filter = "grayscale(100%)";
+                    return; // Para o código aqui, não carrega prêmios
+                }
 
-  <div id="modalAviso">
-      <div class="aviso-content">
-          <div style="font-size: 50px; margin-bottom: 10px;">⚠️</div>
-          <h2 style="color: #f44336; margin-top: 0;">Atenção!</h2>
-          <p id="textoAviso" style="color: #ddd; font-size: 16px; margin-bottom: 25px;">Mensagem.</p>
-          <button class="btn-aviso" onclick="fecharAviso()">Entendi</button>
-      </div>
-  </div>
+                // Se estiver ativa, carrega o prêmio normalmente
+                if (config.premios && config.premios.length > 0) {
+                    // Pega o 1º prêmio como padrão para o texto do botão
+                    let premioPrincipal = config.premios[0].nome;
+                    document.getElementById('nomePremioAtual').innerHTML = `🥇 1º Prêmio: ${premioPrincipal}`;
+                    document.getElementById('btnSortear').innerHTML = `🎲 Sortear ${premioPrincipal.split(' ')[0]}`; // Pega só a primeira palavra pro botão
+                } else {
+                    document.getElementById('nomePremioAtual').innerText = "Nenhum prêmio cadastrado";
+                }
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzApdlm5J8RUkhCvjAkWLfOszRX9cJar3QW_rdnGl1bCNNmZbJiBiFTZ-0krgmpwzp2FA/exec";
-    
-    let listaPremios = []; // Lista vai ser preenchida automaticamente do Banco
-    let faseAtual = 0; 
-    
-    var btnSortear = document.getElementById('btnSortear');
-    var display = document.getElementById('numeroExibicao');
-    var areaHistorico = document.getElementById('areaHistorico');
-    var intervaloRoleta;
-
-    async function carregarPremios() {
-        try {
-            let resposta = await fetch(API_URL + "?action=getConfig");
-            let config = await resposta.json();
-            listaPremios = config.premios;
-
-            if (listaPremios.length > 0) {
-                document.getElementById('labelPremio').innerText = "Sorteando Agora:";
-                atualizarTelaSorteio();
-            } else {
-                mostrarErro("Nenhum prêmio foi cadastrado para a edição atual.");
+            } catch (erro) {
+                document.getElementById('nomePremioAtual').innerText = "Erro de Conexão";
+                console.error(erro);
             }
-        } catch (erro) {
-            mostrarErro("Erro de conexão ao carregar os prêmios.");
         }
-    }
 
-    function atualizarTelaSorteio() {
-        let premio = listaPremios[faseAtual];
-        document.getElementById('nomePremioTexto').innerText = `${premio.icone} ${premio.titulo}: ${premio.nome}`;
-        btnSortear.innerText = `🎲 Sortear ${premio.nome}`;
-        btnSortear.disabled = false;
-    }
+        async function iniciarSorteio() {
+            if (!edicaoEstaAberta) return; // Trava de segurança extra
 
-    async function iniciarSorteio() {
-      btnSortear.disabled = true;
-      btnSortear.innerText = "A Girar Roleta...";
+            let btn = document.getElementById('btnSortear');
+            let roleta = document.getElementById('roleta');
+            let resultadoBox = document.getElementById('resultadoFinal');
+            
+            btn.disabled = true;
+            btn.innerText = "Sorteando...";
+            resultadoBox.style.display = "none";
 
-      intervaloRoleta = setInterval(function() {
-        display.innerText = Math.floor(Math.random() * 200) + 1;
-      }, 50);
+            // Efeito visual de rodar números
+            let intervalo = setInterval(() => {
+                roleta.innerText = Math.floor(Math.random() * 999) + 1;
+            }, 50);
 
-      try {
-        let resposta = await fetch(API_URL + "?action=realizarSorteio");
-        let dados = await resposta.json();
-        
-        if (dados.success) {
-            mostrarResultado(dados);
-        } else {
-            mostrarErro(dados.message);
+            try {
+                let resposta = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "realizarSorteio" })
+                });
+                let resultado = await resposta.json();
+
+                clearInterval(intervalo);
+
+                if (resultado.success) {
+                    roleta.innerText = resultado.numero;
+                    document.getElementById('nomeGanhador').innerText = resultado.nome;
+                    document.getElementById('zapGanhador').innerText = resultado.whatsapp;
+                    resultadoBox.style.display = "block";
+                    btn.innerText = "🎉 Sorteio Concluído";
+                } else {
+                    roleta.innerText = "X";
+                    alert(resultado.message); // Ex: "Não há bilhetes Pagos"
+                    btn.innerText = "🎲 Tentar Novamente";
+                    btn.disabled = false;
+                }
+            } catch (erro) {
+                clearInterval(intervalo);
+                roleta.innerText = "?";
+                alert("Erro de conexão com o servidor. Tente novamente.");
+                btn.innerText = "🎲 Sortear Novamente";
+                btn.disabled = false;
+            }
         }
-      } catch (erro) {
-        mostrarErro("Erro de conexão com o sistema. Tente novamente.");
-      }
-    }
 
-    function mostrarResultado(dados) {
-      setTimeout(function() {
-        clearInterval(intervaloRoleta);
-        display.innerText = dados.numero;
-        atirarConfetes();
-
-        let premio = listaPremios[faseAtual];
-        let cardHTML = `
-            <div class="card-vencedor ${premio.corClass}">
-                <div class="vencedor-titulo">${premio.icone} Ganhador do ${premio.nome}</div>
-                <div class="vencedor-dados"><b>Nº ${dados.numero}</b> - ${dados.nome}</div>
-                <div class="vencedor-zap">📱 WhatsApp: ${dados.whatsapp}</div>
-            </div>
-        `;
-        areaHistorico.innerHTML += cardHTML;
-        
-        faseAtual++;
-        
-        if (faseAtual < listaPremios.length) {
-            atualizarTelaSorteio();
-        } else {
-            document.getElementById('labelPremio').innerText = "Status:";
-            document.getElementById('nomePremioTexto').innerText = "🎉 Sorteios Finalizados! 🎉";
-            btnSortear.innerText = "Sorteio Concluído";
-            btnSortear.style.background = "#555";
-            btnSortear.disabled = true;
-        }
-      }, 3000);
-    }
-
-    function mostrarErro(mensagem) {
-      clearInterval(intervaloRoleta);
-      display.innerText = "!";
-      document.getElementById('textoAviso').innerText = mensagem;
-      document.getElementById('modalAviso').style.display = 'flex';
-      
-      if (listaPremios.length > 0 && faseAtual < listaPremios.length) {
-          btnSortear.disabled = false;
-          btnSortear.innerText = `🎲 Sortear ${listaPremios[faseAtual].nome}`;
-      }
-    }
-
-    function fecharAviso() { document.getElementById('modalAviso').style.display = 'none'; }
-
-    function atirarConfetes() {
-      var cores = ['#FFD700', '#FF5722', '#4CAF50', '#2196F3', '#E91E63'];
-      for (var i = 0; i < 60; i++) {
-        var confete = document.createElement('div');
-        confete.style.position = 'fixed';
-        confete.style.width = '12px';
-        confete.style.height = '12px';
-        confete.style.backgroundColor = cores[Math.floor(Math.random() * cores.length)];
-        confete.style.top = '-10px';
-        confete.style.left = Math.random() * 100 + 'vw';
-        confete.style.opacity = Math.random();
-        confete.style.zIndex = '9999';
-        confete.style.transition = 'top 3s ease-in, transform 3s ease-out';
-        document.body.appendChild(confete);
-        setTimeout((function(c) { return function() { c.style.top = '100vh'; c.style.transform = 'rotate(' + Math.random() * 360 + 'deg)'; }; })(confete), 10);
-      }
-    }
-
-    // CARREGA OS PRÊMIOS AO INICIAR A PÁGINA
-    carregarPremios();
-  </script>
+        carregarDadosSorteio();
+    </script>
 </body>
 </html>
