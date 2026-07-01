@@ -44,6 +44,7 @@
             padding: 15px;
             background-color: rgba(255, 215, 0, 0.05);
             margin-bottom: 30px;
+            transition: 0.3s;
         }
 
         .box-premio p {
@@ -98,25 +99,32 @@
             box-shadow: 0 8px 20px rgba(76, 175, 80, 0.6);
         }
 
-        .resultado-box {
-            display: none;
-            margin-top: 20px;
-            background: #2a5298;
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px dashed #64b5f6;
-            animation: fadeIn 0.5s;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Estilo para quando a edição estiver bloqueada */
         .btn-bloqueado {
             background: #555 !important;
             box-shadow: none !important;
             cursor: not-allowed !important;
             color: #aaa !important;
         }
+
+        /* Container que vai segurar os ganhadores um em cima do outro */
+        #listaGanhadores {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .resultado-box {
+            background: #2a5298;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px dashed #64b5f6;
+            animation: fadeIn 0.5s;
+            text-align: center;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
     </style>
 </head>
 <body>
@@ -124,32 +132,30 @@
     <div class="card-sorteio">
         <div class="titulo-tela">🏆 Tela de Sorteio</div>
         
-        <div class="box-premio">
+        <div class="box-premio" id="boxPremioAtual">
             <p>Sorteando Agora:</p>
-            <h2 id="nomePremioAtual">Carregando...</h2>
+            <h2 id="nomePremioAtual">Conectando...</h2>
         </div>
 
         <div class="circulo-roleta" id="roleta">?</div>
 
-        <button class="btn-sortear" id="btnSortear" onclick="iniciarSorteio()">🎲 Sortear Prêmio</button>
+        <button class="btn-sortear" id="btnSortear" onclick="iniciarSorteio()">🎲 Aguarde...</button>
 
-        <div class="resultado-box" id="resultadoFinal">
-            <p style="margin: 0 0 5px 0; color: #bbdefb; font-size: 14px;">🎉 GANHADOR(A) 🎉</p>
-            <h3 style="margin: 0 0 10px 0; font-size: 24px; color: white;" id="nomeGanhador">Nome do Cliente</h3>
-            <p style="margin: 0; color: #fff; font-weight: bold;">WhatsApp: <span id="zapGanhador"></span></p>
-        </div>
+        <div id="listaGanhadores"></div>
     </div>
 
     <script>
-        // 🚨 COLE O SEU LINK DA API AQUI (O MESMO QUE USOU NO INDEX.HTML)
+        // 🚨 COLE O SEU LINK DA API AQUI
         const API_URL = "https://script.google.com/macros/s/AKfycbyNqH8YqP7uzR42WYdSOoCzjWvt7_9ZpNXfNqBn4V4yxXzNRyqLRq-tN-vi0aToVmW-4w/exec"; 
         
-        let edicaoEstaAberta = true; // Variável do Cadeado
+        let edicaoEstaAberta = true;
+        
+        // NOVAS VARIÁVEIS DE CONTROLE DE FILA DE PRÊMIOS
+        let listaPremios = [];
+        let indicePremioAtual = 0;
 
         async function carregarDadosSorteio() {
             try {
-                document.getElementById('nomePremioAtual').innerText = "Conectando...";
-                
                 let resposta = await fetch(API_URL + "?action=getConfig");
                 let config = await resposta.json();
 
@@ -157,23 +163,17 @@
                 let statusEd = config.statusEdicao ? config.statusEdicao.toLowerCase() : "ativa";
                 if (statusEd === "concluída" || statusEd === "concluida" || statusEd === "encerrada") {
                     edicaoEstaAberta = false;
-                    let btn = document.getElementById('btnSortear');
-                    btn.innerText = "🚫 EDIÇÃO JÁ SORTEADA";
-                    btn.classList.add('btn-bloqueado');
-                    btn.disabled = true;
-                    document.getElementById('nomePremioAtual').innerText = "Sorteio Encerrado";
-                    document.getElementById('roleta').style.filter = "grayscale(100%)";
-                    return; // Para o código aqui, não carrega prêmios
+                    bloquearTela("🚫 EDIÇÃO JÁ SORTEADA", "Sorteio Encerrado");
+                    return; 
                 }
 
-                // Se estiver ativa, carrega o prêmio normalmente
+                // Carrega a fila de prêmios configurados
                 if (config.premios && config.premios.length > 0) {
-                    // Pega o 1º prêmio como padrão para o texto do botão
-                    let premioPrincipal = config.premios[0].nome;
-                    document.getElementById('nomePremioAtual').innerHTML = `🥇 1º Prêmio: ${premioPrincipal}`;
-                    document.getElementById('btnSortear').innerHTML = `🎲 Sortear ${premioPrincipal.split(' ')[0]}`; // Pega só a primeira palavra pro botão
+                    listaPremios = config.premios; 
+                    indicePremioAtual = 0;
+                    atualizarVisorPremio(); // Mostra o 1º prêmio
                 } else {
-                    document.getElementById('nomePremioAtual').innerText = "Nenhum prêmio cadastrado";
+                    bloquearTela("🚫 NENHUM PRÊMIO CADASTRADO", "Sem prêmios");
                 }
 
             } catch (erro) {
@@ -182,21 +182,35 @@
             }
         }
 
+        // Atualiza os textos da tela com base no prêmio da fila
+        function atualizarVisorPremio() {
+            let premio = listaPremios[indicePremioAtual];
+            document.getElementById('nomePremioAtual').innerHTML = `${premio.icone} ${premio.titulo}: ${premio.nome}`;
+            document.getElementById('btnSortear').innerHTML = `🎲 Sortear ${premio.titulo}`;
+        }
+
+        function bloquearTela(textoBotao, textoPremio) {
+            let btn = document.getElementById('btnSortear');
+            btn.innerText = textoBotao;
+            btn.classList.add('btn-bloqueado');
+            btn.disabled = true;
+            document.getElementById('nomePremioAtual').innerText = textoPremio;
+            document.getElementById('roleta').style.filter = "grayscale(100%)";
+        }
+
         async function iniciarSorteio() {
-            if (!edicaoEstaAberta) return; // Trava de segurança extra
+            // Trava de segurança para não rodar se já acabou
+            if (!edicaoEstaAberta || indicePremioAtual >= listaPremios.length) return; 
 
             let btn = document.getElementById('btnSortear');
             let roleta = document.getElementById('roleta');
-            let resultadoBox = document.getElementById('resultadoFinal');
+            let premioAtual = listaPremios[indicePremioAtual];
             
             btn.disabled = true;
             btn.innerText = "Sorteando...";
-            resultadoBox.style.display = "none";
 
-            // Efeito visual de rodar números
-            let intervalo = setInterval(() => {
-                roleta.innerText = Math.floor(Math.random() * 999) + 1;
-            }, 50);
+            // Efeito visual
+            let intervalo = setInterval(() => { roleta.innerText = Math.floor(Math.random() * 999) + 1; }, 50);
 
             try {
                 let resposta = await fetch(API_URL, {
@@ -209,21 +223,42 @@
 
                 if (resultado.success) {
                     roleta.innerText = resultado.numero;
-                    document.getElementById('nomeGanhador').innerText = resultado.nome;
-                    document.getElementById('zapGanhador').innerText = resultado.whatsapp;
-                    resultadoBox.style.display = "block";
-                    btn.innerText = "🎉 Sorteio Concluído";
+                    
+                    // Constrói o HTML do ganhador e coloca na tela
+                    let htmlGanhador = `
+                        <div class="resultado-box">
+                            <p style="margin: 0 0 5px 0; color: #bbdefb; font-size: 14px;">${premioAtual.icone} GANHADOR(A) DO ${premioAtual.titulo.toUpperCase()} ${premioAtual.icone}</p>
+                            <h3 style="margin: 0 0 5px 0; font-size: 22px; color: white;">${resultado.nome}</h3>
+                            <p style="margin: 0 0 5px 0; color: #FFD700; font-weight: bold; font-size: 18px;">Bilhete Sorteado: ${resultado.numero}</p>
+                            <p style="margin: 0; color: #fff; font-size: 14px;">WhatsApp: ${resultado.whatsapp}</p>
+                        </div>
+                    `;
+                    // Insere o card novo no TOPO da lista de ganhadores
+                    document.getElementById('listaGanhadores').insertAdjacentHTML('afterbegin', htmlGanhador);
+
+                    // Avança a fila para o próximo prêmio
+                    indicePremioAtual++;
+
+                    if (indicePremioAtual < listaPremios.length) {
+                        // Ainda tem prêmios para sortear
+                        atualizarVisorPremio();
+                        btn.disabled = false;
+                    } else {
+                        // Acabaram os prêmios
+                        bloquearTela("🎉 TODOS OS PRÊMIOS SORTEADOS", "Sorteio Finalizado!");
+                    }
+
                 } else {
                     roleta.innerText = "X";
                     alert(resultado.message); // Ex: "Não há bilhetes Pagos"
-                    btn.innerText = "🎲 Tentar Novamente";
+                    btn.innerText = `🎲 Tentar Novamente (${premioAtual.titulo})`;
                     btn.disabled = false;
                 }
             } catch (erro) {
                 clearInterval(intervalo);
                 roleta.innerText = "?";
                 alert("Erro de conexão com o servidor. Tente novamente.");
-                btn.innerText = "🎲 Sortear Novamente";
+                btn.innerText = `🎲 Sortear Novamente`;
                 btn.disabled = false;
             }
         }
