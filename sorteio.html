@@ -106,7 +106,6 @@
             color: #aaa !important;
         }
 
-        /* Container que vai segurar os ganhadores um em cima do outro */
         #listaGanhadores {
             display: flex;
             flex-direction: column;
@@ -123,6 +122,14 @@
             text-align: center;
         }
 
+        .aviso-recuperacao {
+            color: #ff9800;
+            font-size: 12px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            display: none;
+        }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
     </style>
@@ -132,6 +139,8 @@
     <div class="card-sorteio">
         <div class="titulo-tela">🏆 Tela de Sorteio</div>
         
+        <div id="avisoRecuperacao" class="aviso-recuperacao">🔄 Sistema recuperado: Continuando de onde parou...</div>
+
         <div class="box-premio" id="boxPremioAtual">
             <p>Sorteando Agora:</p>
             <h2 id="nomePremioAtual">Conectando...</h2>
@@ -149,17 +158,18 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbyNqH8YqP7uzR42WYdSOoCzjWvt7_9ZpNXfNqBn4V4yxXzNRyqLRq-tN-vi0aToVmW-4w/exec"; 
         
         let edicaoEstaAberta = true;
-        
-        // NOVAS VARIÁVEIS DE CONTROLE DE FILA DE PRÊMIOS
         let listaPremios = [];
         let indicePremioAtual = 0;
 
         async function carregarDadosSorteio() {
             try {
-                let resposta = await fetch(API_URL + "?action=getConfig");
-                let config = await resposta.json();
+                // ESTRATÉGIA ANTI-QUEDA: Puxa a configuração e os bilhetes todos juntos
+                let resposta = await fetch(API_URL + "?action=getInitialData");
+                let dadosIniciais = await resposta.json();
+                let config = dadosIniciais.config;
+                let bilhetes = dadosIniciais.numbers;
 
-                // LÓGICA DO CADEADO
+                // Lógica do Cadeado de Edição Concluída
                 let statusEd = config.statusEdicao ? config.statusEdicao.toLowerCase() : "ativa";
                 if (statusEd === "concluída" || statusEd === "concluida" || statusEd === "encerrada") {
                     edicaoEstaAberta = false;
@@ -167,11 +177,26 @@
                     return; 
                 }
 
-                // Carrega a fila de prêmios configurados
                 if (config.premios && config.premios.length > 0) {
                     listaPremios = config.premios; 
-                    indicePremioAtual = 0;
-                    atualizarVisorPremio(); // Mostra o 1º prêmio
+
+                    // 🚨 O CÉREBRO DA RECUPERAÇÃO 🚨
+                    // Ele varre o banco de dados e conta quantos bilhetes já estão com o carimbo "Premiado"
+                    let qtdJaSorteados = bilhetes.filter(b => b.status.toLowerCase() === 'premiado').length;
+
+                    // O sistema avança automaticamente a fila de prêmios ignorando os que já saíram
+                    indicePremioAtual = qtdJaSorteados;
+
+                    if (indicePremioAtual >= listaPremios.length) {
+                        // Se já saíram 3 prêmios e a lista só tem 3
+                        bloquearTela("🎉 TODOS OS PRÊMIOS SORTEADOS", "Sorteio Finalizado!");
+                    } else {
+                        // Se a internet caiu no 1º, ele retoma direto do 2º!
+                        if (indicePremioAtual > 0) {
+                            document.getElementById('avisoRecuperacao').style.display = 'block';
+                        }
+                        atualizarVisorPremio();
+                    }
                 } else {
                     bloquearTela("🚫 NENHUM PRÊMIO CADASTRADO", "Sem prêmios");
                 }
@@ -182,7 +207,6 @@
             }
         }
 
-        // Atualiza os textos da tela com base no prêmio da fila
         function atualizarVisorPremio() {
             let premio = listaPremios[indicePremioAtual];
             document.getElementById('nomePremioAtual').innerHTML = `${premio.icone} ${premio.titulo}: ${premio.nome}`;
@@ -199,8 +223,10 @@
         }
 
         async function iniciarSorteio() {
-            // Trava de segurança para não rodar se já acabou
             if (!edicaoEstaAberta || indicePremioAtual >= listaPremios.length) return; 
+
+            // Esconde o aviso de recuperação se ele estiver na tela
+            document.getElementById('avisoRecuperacao').style.display = 'none';
 
             let btn = document.getElementById('btnSortear');
             let roleta = document.getElementById('roleta');
@@ -209,7 +235,6 @@
             btn.disabled = true;
             btn.innerText = "Sorteando...";
 
-            // Efeito visual
             let intervalo = setInterval(() => { roleta.innerText = Math.floor(Math.random() * 999) + 1; }, 50);
 
             try {
@@ -224,7 +249,6 @@
                 if (resultado.success) {
                     roleta.innerText = resultado.numero;
                     
-                    // Constrói o HTML do ganhador e coloca na tela
                     let htmlGanhador = `
                         <div class="resultado-box">
                             <p style="margin: 0 0 5px 0; color: #bbdefb; font-size: 14px;">${premioAtual.icone} GANHADOR(A) DO ${premioAtual.titulo.toUpperCase()} ${premioAtual.icone}</p>
@@ -233,24 +257,20 @@
                             <p style="margin: 0; color: #fff; font-size: 14px;">WhatsApp: ${resultado.whatsapp}</p>
                         </div>
                     `;
-                    // Insere o card novo no TOPO da lista de ganhadores
                     document.getElementById('listaGanhadores').insertAdjacentHTML('afterbegin', htmlGanhador);
 
-                    // Avança a fila para o próximo prêmio
-                    indicePremioAtual++;
+                    indicePremioAtual++; // Informa ao sistema que esse prêmio foi concluído
 
                     if (indicePremioAtual < listaPremios.length) {
-                        // Ainda tem prêmios para sortear
                         atualizarVisorPremio();
                         btn.disabled = false;
                     } else {
-                        // Acabaram os prêmios
                         bloquearTela("🎉 TODOS OS PRÊMIOS SORTEADOS", "Sorteio Finalizado!");
                     }
 
                 } else {
                     roleta.innerText = "X";
-                    alert(resultado.message); // Ex: "Não há bilhetes Pagos"
+                    alert(resultado.message); 
                     btn.innerText = `🎲 Tentar Novamente (${premioAtual.titulo})`;
                     btn.disabled = false;
                 }
