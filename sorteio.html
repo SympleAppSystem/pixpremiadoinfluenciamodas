@@ -139,7 +139,7 @@
     <div class="card-sorteio">
         <div class="titulo-tela">🏆 Tela de Sorteio</div>
         
-        <div id="avisoRecuperacao" class="aviso-recuperacao">🔄 Sistema recuperado: Continuando de onde parou...</div>
+        <div id="avisoRecuperacao" class="aviso-recuperacao">🔄 Sistema recuperado: Carregando sorteios anteriores...</div>
 
         <div class="box-premio" id="boxPremioAtual">
             <p>Sorteando Agora:</p>
@@ -154,8 +154,8 @@
     </div>
 
     <script>
-        // 🚨 COLE O SEU LINK DA API AQUI
-        const API_URL = "https://script.google.com/macros/s/AKfycbyNqH8YqP7uzR42WYdSOoCzjWvt7_9ZpNXfNqBn4V4yxXzNRyqLRq-tN-vi0aToVmW-4w/exec"; 
+        // 🚨 COLE O SEU LINK DA API DO NOVO DEPLOY AQUI
+        const API_URL = "https://script.google.com/macros/s/AKfycbwh5JYQBhjIeqG7LFzvjH2dfM2_YmVHoFcFKxCgfyiUrlsSJ8-_u1cUTarljHYWRp0Cxg/exec"; 
         
         let edicaoEstaAberta = true;
         let listaPremios = [];
@@ -163,13 +163,11 @@
 
         async function carregarDadosSorteio() {
             try {
-                // ESTRATÉGIA ANTI-QUEDA: Puxa a configuração e os bilhetes todos juntos
                 let resposta = await fetch(API_URL + "?action=getInitialData");
                 let dadosIniciais = await resposta.json();
                 let config = dadosIniciais.config;
                 let bilhetes = dadosIniciais.numbers;
 
-                // Lógica do Cadeado de Edição Concluída
                 let statusEd = config.statusEdicao ? config.statusEdicao.toLowerCase() : "ativa";
                 if (statusEd === "concluída" || statusEd === "concluida" || statusEd === "encerrada") {
                     edicaoEstaAberta = false;
@@ -180,21 +178,37 @@
                 if (config.premios && config.premios.length > 0) {
                     listaPremios = config.premios; 
 
-                    // 🚨 O CÉREBRO DA RECUPERAÇÃO 🚨
-                    // Ele varre o banco de dados e conta quantos bilhetes já estão com o carimbo "Premiado"
-                    let qtdJaSorteados = bilhetes.filter(b => b.status.toLowerCase() === 'premiado').length;
+                    // Separa os bilhetes que já ganharam prêmios
+                    let sorteados = bilhetes.filter(b => b.status.toLowerCase() === 'premiado');
+                    let qtdJaSorteados = sorteados.length;
 
-                    // O sistema avança automaticamente a fila de prêmios ignorando os que já saíram
+                    // 🚨 ALTERAÇÃO: RECUPERAÇÃO VISUAL DOS CARDS 🚨
+                    if (qtdJaSorteados > 0) {
+                        document.getElementById('avisoRecuperacao').style.display = 'block';
+                        
+                        // Recria os cards antigos com base nos prêmios que eles representam
+                        sorteados.forEach((ganhador, idx) => {
+                            let premioRef = listaPremios[idx];
+                            if(premioRef) {
+                                let htmlGanhador = `
+                                    <div class="resultado-box">
+                                        <p style="margin: 0 0 5px 0; color: #bbdefb; font-size: 14px;">${premioRef.icone} GANHADOR(A) DO ${premioRef.titulo.toUpperCase()} ${premioRef.icone}</p>
+                                        <h3 style="margin: 0 0 5px 0; font-size: 22px; color: white;">${ganhador.nome}</h3>
+                                        <p style="margin: 0 0 5px 0; color: #FFD700; font-weight: bold; font-size: 18px;">Bilhete Sorteado: ${ganhador.numero}</p>
+                                        <p style="margin: 0; color: #fff; font-size: 14px;">WhatsApp: ${ganhador.whatsapp}</p>
+                                    </div>
+                                `;
+                                // afterbegin empurra os cards antigos para baixo, deixando o mais recente no topo!
+                                document.getElementById('listaGanhadores').insertAdjacentHTML('afterbegin', htmlGanhador);
+                            }
+                        });
+                    }
+
                     indicePremioAtual = qtdJaSorteados;
 
                     if (indicePremioAtual >= listaPremios.length) {
-                        // Se já saíram 3 prêmios e a lista só tem 3
                         bloquearTela("🎉 TODOS OS PRÊMIOS SORTEADOS", "Sorteio Finalizado!");
                     } else {
-                        // Se a internet caiu no 1º, ele retoma direto do 2º!
-                        if (indicePremioAtual > 0) {
-                            document.getElementById('avisoRecuperacao').style.display = 'block';
-                        }
                         atualizarVisorPremio();
                     }
                 } else {
@@ -225,7 +239,6 @@
         async function iniciarSorteio() {
             if (!edicaoEstaAberta || indicePremioAtual >= listaPremios.length) return; 
 
-            // Esconde o aviso de recuperação se ele estiver na tela
             document.getElementById('avisoRecuperacao').style.display = 'none';
 
             let btn = document.getElementById('btnSortear');
@@ -259,7 +272,7 @@
                     `;
                     document.getElementById('listaGanhadores').insertAdjacentHTML('afterbegin', htmlGanhador);
 
-                    indicePremioAtual++; // Informa ao sistema que esse prêmio foi concluído
+                    indicePremioAtual++; 
 
                     if (indicePremioAtual < listaPremios.length) {
                         atualizarVisorPremio();
