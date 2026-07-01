@@ -155,7 +155,7 @@
 
     <script>
         // 🚨 COLE O SEU LINK DA API DO NOVO DEPLOY AQUI
-        const API_URL = "https://script.google.com/macros/s/AKfycbwh5JYQBhjIeqG7LFzvjH2dfM2_YmVHoFcFKxCgfyiUrlsSJ8-_u1cUTarljHYWRp0Cxg/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbxSchtY6piSFFQEgylSUF-8JEOuIZo2XIU7kyOEDsLya1jKjRk1gmqQ7pHBMwBo_ANzvA/exec"; 
         
         let edicaoEstaAberta = true;
         let listaPremios = [];
@@ -245,15 +245,19 @@
             let roleta = document.getElementById('roleta');
             let premioAtual = listaPremios[indicePremioAtual];
             
+            // 🚨 A MÁGICA ACONTECE AQUI: O site descobre se esse é o último prêmio da lista
+            let ehUltimoSorteio = (indicePremioAtual + 1 === listaPremios.length);
+            
             btn.disabled = true;
             btn.innerText = "Sorteando...";
 
             let intervalo = setInterval(() => { roleta.innerText = Math.floor(Math.random() * 999) + 1; }, 50);
 
             try {
+                // Ele envia o pacote para o Google avisando se é a última rodada
                 let resposta = await fetch(API_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: "realizarSorteio" })
+                    body: JSON.stringify({ action: "realizarSorteio", ultimoSorteio: ehUltimoSorteio })
                 });
                 let resultado = await resposta.json();
 
@@ -278,6 +282,8 @@
                         atualizarVisorPremio();
                         btn.disabled = false;
                     } else {
+                        // Como o Google já mudou o status para "Concluída" por trás dos panos,
+                        // nós só travamos a tela de quem está assistindo!
                         bloquearTela("🎉 TODOS OS PRÊMIOS SORTEADOS", "Sorteio Finalizado!");
                     }
 
@@ -295,7 +301,6 @@
                 btn.disabled = false;
             }
         }
-
         carregarDadosSorteio();
     </script>
 </body>
